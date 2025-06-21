@@ -1,9 +1,3 @@
-
-
-
--  Tying it together
-	- quote and explain action to add to the obsidian vault, referencing the PAT created and making the destination ./content. Explain the index.md test.
-	- optional section below for excluding files or directories, such as when using your root as the content and you want to exclude private or dotfiles
 - Maintaining multiple sites from the same vault
 	- Just create multiple folders, each with their own contents.
 	- Follow step 3 again and customize configuration and layout (or if starting with the same settings, save time by duplicating an existing repo by going to GitHub import the repo to a new repo) to create a new site. Remember to set github pages setting to actions
@@ -258,5 +252,10 @@ The structure is the same as the `deploy.yml` workflow we created earlier. As fo
 ```
 
 That final `Push Obsidan Content Folder` step is where these workflows finally click together and the CI/CD pipeline is finally complete. When you push your updated Obsidian notes to the Obsidian vault repository it immediately run the `push-quartz-content.yml` workflow, which by finishing with a push to the main branch of your Quartz repository then triggers the `on: push:` condition of the `deploy.yml` workflow, fully automating the integration and deployment process. 
+
+After pushing the changes to your Obsidian vault repo, the workflows in both vaults will run and if you open the rebuild & redeployed site at `https://<YOUR-USERNAME>.github.io/<QUARTZ-REPO-NAME>/` you will now see the site's been updated with the content from your Obsidian vault. 
+
+![[Final-Website.png]]
+
 ## Maintaining Multiple Sites from a Single Vault
 ## Conclusion
