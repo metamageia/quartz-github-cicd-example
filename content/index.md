@@ -1,6 +1,5 @@
 ---
-title: Welcome to Quartz
+title: Obsidian to Quartz CI/CD Example
 ---
 
-This is a blank Quartz installation.
-See the [documentation](https://quartz.jzhao.xyz) for how to get started.
+This is an example home page for the [[Effortless Obsidian to Quartz CI&CD for Beginners with GitHub Actions]] tutorial website!
