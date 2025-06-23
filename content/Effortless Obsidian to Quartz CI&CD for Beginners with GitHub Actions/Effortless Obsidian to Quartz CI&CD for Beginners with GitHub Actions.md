@@ -1,44 +1,16 @@
-- Maintaining multiple sites from the same vault
-	- Just create multiple folders, each with their own contents.
-	- Follow step 3 again and customize configuration and layout (or if starting with the same settings, save time by duplicating an existing repo by going to GitHub import the repo to a new repo) to create a new site. Remember to set github pages setting to actions
-	- Add a new job for each site OR separate workflows for each site, including the new sources and destinations and PAT key
-	- every site will be updated simultaneously everytime you push your main vault 
-- Conclusion 
-	- Benefits, why I do it, example use cases
-	- Call to action to share
-	- Link NVDH video on quartz, how I found out about it. Link again to quartz documentation for issues
-	- link to github actions docs
-	- link to the example file push action by [DataLbry](https://github.com/datalbry)
-		- https://github.com/marketplace/actions/push-a-directory-to-another-repository 
-	- link to example file check action by [andstor](https://github.com/marketplace/actions/file-existence)
-		- https://github.com/marketplace/actions/file-existence
-	- Template Repository
-		- https://github.com/metamageia/Quartz-Template
 # Effortless Obsidian to Quartz CI/CD for Beginners with GitHub Actions
 
 ## Table of Contents
-- Introduction
-	- Why I use Obsidian
-	- Why Quartz over Obsidian Publish 
-	- Who This Is For
-	- Goal & Scope
-- What is CI/CD?
-	- Continuous Integration
-	- Continuous Deployment
-	- Workflow Overview
-- Preparing your Obsidian Vault
-	- Prerequisites
-	- Initializing the Repository
-	- Creating the Website Folder & Contents
-- Setting up and Hosting the Quartz Static Site
-	- Creating a new Repository from Template
-	- GitHub Pages Setup
-- CI/CD Pipeline
-	- Quartz Deploy Workflow
-	- Setting up your PAT and Secrets Management
-	- Automating Quartz Site Content Updates
-- Maintaining Multiple Sites from the same Vault
-- Conclusion
+- [[#Introduction]]
+- [[#What is CI/CD?]]
+- [[#Preparing your Obsidian Vault]]
+- [[#Setting up the Quartz Static Site]]
+- [[#Creating the CI/CD Workflow]]
+	- [[#Quartz Deploy Workflow]]
+	- [[#Setting up a PAT & Secrets Management]]
+	- [[#Push Quartz Content Workflow]]
+- [[#Optional Maintaining Multiple Sites from within a Single Vault]]
+- [[#Conclusion]]
 
 ## Introduction
 
@@ -75,7 +47,7 @@ The next step is to create a GitHub repository with the contents of your Obsidia
 
 ## Setting up the Quartz Static Site
 
-Because this tutorial is focused on basic CI/CD principles for beginners, we won't be building a Quartz website from scratch - so no Node.js knowledge or dependency installation required! Instead, go to the [Quartz template repository](https://github.com/metamageia/Quartz-Template) I've provided and create a new repository from this template. Give your website repo an appropriate name and keep all other settings as their defaults. 
+Because this tutorial is specifically focused on basic CI/CD principles for beginners, we won't be building a Quartz website from scratch - so no Node.js knowledge or dependency installation required! Instead, go to the [Quartz template repository](https://github.com/metamageia/Quartz-Template) I've provided and create a new repository from this template. Give your website repo an appropriate name and keep all other settings as their defaults. 
 
 > Note: If you'd prefer to create your Quartz from scratch follow the steps outlined in the official docs starting with the [setup](https://quartz.jzhao.xyz/), [build](https://quartz.jzhao.xyz/build), and the [GitHub repository](https://quartz.jzhao.xyz/setting-up-your-GitHub-repository) then follow along with the next step.
 
@@ -208,7 +180,7 @@ jobs:
       id: check_files
       uses: andstor/file-existence-action@v3
       with:
-        files: "./index.md"
+        files: "<PATH_TO_YOUR_INDEX.MD>"
 
     - name: Index exists
       if: steps.check_files.outputs.files_exists == 'true'
@@ -235,17 +207,18 @@ jobs:
 ```
 
 Before we break it down, pay special care to edit these specific lines:
-- `API_TOKEN_GITHUB: ${{ secrets.QUARTZ_REPO_PAT }}` If you named your PAT your repository secrets `QUARTZ_REPO_PAT` this can remain the same. If you gave it a different name, update it here. 
-- `source_folder: '<PATH_TO_YOUR_SOURCE_FOLDER>'` Sets the path to the specific folder in your Obsidian vault repository created `index.md` in to be copied and pushed to the other repo.
+- `files: "<PATH_TO_YOUR_INDEX.MD>"` Should point to the location of your `index.md` file in your vault. 
+- `API_TOKEN_GITHUB: ${{ secrets.QUARTZ_REPO_PAT }}` If you named your PAT in your repository secrets `QUARTZ_REPO_PAT` this can remain the same. If you gave it a different name, update it here. 
+- `source_folder: '<PATH_TO_YOUR_SOURCE_FOLDER>'` Sets the path to the specific folder in your Obsidian vault repository (that you created `index.md` in) to be copied and pushed to the other repo.
 - `destination_repo: '<YOUR_USERNAME>/<QUARTZ-REPO-NAME>'` Should be updated to point at your Quartz repository so the workflow pushes the content to the correct location. 
 - `user_email: '<YOUR_EMAIL>'`, `user_name: '<YOUR_USERNAME>'`, and `commit_msg: 'Update Quartz Website Content'` will set your identity and commit message when the workflow pushes to the destination repo.
 
-The structure is the same as the `deploy.yml` workflow we created earlier. As for what the job steps do:
+The structure is similar to the `deploy.yml` workflow we created earlier - it contains one or more Jobs, each of which contains one or more Steps. As for what the specific job steps do:
 - `Checkout` Sets up the virtual Ubuntu environment
 - `Check if Index.md exists` does a quick test to see if `index.md` exists in the content folder's root, and aborting the job if it doesn't exist. This prevents the workflow from pushing content without a valid index and breaking the website at deployment. 
 - `Push Obsidan Content Folder` Then commits the verified (and optionally, filtered - see below) contents and pushes them to the destination Quartz repository, completely overwriting its `./content` folder.
 
->Optional: You can remove specific files and folders by placing an `rm -rf` step *after* `Checkout` but *before* `Push Obsidian Content Folder`. This is especially useful if you're publishing your vault's root folder and want to filter out dotfiles or private folders:
+>Optional: You can remove specific files and folders by placing an `rm -rf` step *after* `Checkout` but *before* `Push Obsidian Content Folder`. This is especially useful if you're publishing your vault's root folder and want to filter out dotfiles or private folders. In this example I'm removing the .obsidian and .github folders from the copied directory before pushing to Quartz:
 ```
 - name: Remove .obsidian and .github folders
   run: rm -rf .obsidian .github
@@ -257,5 +230,14 @@ After pushing the changes to your Obsidian vault repo, the workflows in both vau
 
 ![[Final-Website.png]]
 
-## Maintaining Multiple Sites from a Single Vault
+## Optional: Maintaining Multiple Sites from within a Single Vault
+
+Now that you've successfully created your website and automated the build and deployment process, you can easily extend your CI/CD pipeline to multiple websites from the same Obsidian vault. 
+
+To create additional websites the process is identical. Set up a new folder in your Obsidian Vault with its own content and `index.md` file. Create a new repo from the [Quartz template repository](https://github.com/metamageia/Quartz-Template), set the Pages source to Actions, and create `deploy.yml` exactly as we did before. In your Obsidian repository's `.github/workflows`  folder, create another workflow identical to `push-quartz-content.yml` (preferably with a unique name identifying the specific website), remembering to change the destination repository, source folder, and `index.md` path updated to match your new site. Once everything is set up, pushing an update to your Obsidian repository will run both workflows simultaneously, updating both websites. 
+
 ## Conclusion
+
+With all of this in place, publishing notes to multiple websites (including [my personal website](https://metamageia.github.io/The-Metamageia-Vault/)) has become an effortless process - all of the tedious maintenance work completely automated by this GitHub actions CI/CD pipeline.  As a bonus, this process is made even more convenient with the inclusion of the [Obsidian Git Plugin](https://github.com/Vinzent03/obsidian-git), which allows me to commit and push changes directly from Obsidian, including Obsidian mobile. It is incredibly satisfying to write a few notes on my phone, run the sync command, and a minute later see my website updated accordingly.
+
+If you've followed these steps through the end and have started to maintain your own Quartz website reach out to me at `metamageia@gmail.com` with your thoughts and a link to your site, I'd love to see what you've made!
